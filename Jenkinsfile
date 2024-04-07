@@ -49,14 +49,24 @@ pipeline {
                 sh "trivy fs . > trivyfs.txt"
             }
         }
-        
-        stage("Docker Build & Push"){
+        stage("Docker Build") {
+             steps {
+                 sh 'sudo docker build --build-arg TMDB_V3_API_KEY=556921937e1be1e4703fbe797151c3e0 -t netflix .'
+             }
+            
+        stage("Docker Push"){
             steps{
                 script{
-                   withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
-                       sh "sudo docker build --build-arg TMDB_V3_API_KEY=556921937e1be1e4703fbe797151c3e0 -t netflix ."
-                       sh "sudo docker tag netflix dockers766/netflix:latest "
-                       sh "sudo docker push dockers766/netflix:latest "
+                   //withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
+                     //  sh "sudo docker build --build-arg TMDB_V3_API_KEY=556921937e1be1e4703fbe797151c3e0 -t netflix ."
+                      // sh "sudo docker tag netflix dockers766/netflix:latest "
+                       //sh "sudo docker push dockers766/netflix:latest "
+                       
+                    withCredentials([usernamePassword(credentialsId: "docker", passwordVariable: "dockerhubPass", usernameVariable: "dockerhubUser")]) {
+                     sh "docker tag netflix ${env.dockerhubUser}/netflix:latest"
+                     sh "docker login -u ${env.dockerhubUser} -p ${env.dockerhubPass}"
+                     sh "docker push ${env.dockerhubUser}/netflix:latest"
+                       
                     }
                 }
             }
